@@ -3,7 +3,8 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Copy_dkd",
+				"name": "CopyData",
+				"description": "First Pipeline",
 				"type": "Copy",
 				"dependsOn": [],
 				"policy": {
