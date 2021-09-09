@@ -1,0 +1,51 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "deya7xdf"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/dataflow1')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DelimitedText1",
+								"type": "DatasetReference"
+							},
+							"name": "movieCSV"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "movie_json",
+								"type": "DatasetReference"
+							},
+							"name": "writeJson"
+						}
+					],
+					"transformations": [
+						{
+							"name": "createHierarchy"
+						}
+					],
+					"script": "source(output(\n\t\tmovieId as integer,\n\t\ttitle as string,\n\t\tgenres as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tskipLines: 1,\n\tpartitionBy('hash', 1)) ~> movieCSV\nmovieCSV derive(genres = split(genres,'|')) ~> createHierarchy\ncreateHierarchy sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tumask: 0022,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tmovieId,\n\t\ttitle,\n\t\tgenres\n\t),\n\tpartitionBy('hash', 1)) ~> writeJson"
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}
