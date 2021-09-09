@@ -1,0 +1,181 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "deya7xdf"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSynapseAnalyticsTable1')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSynapseAnalytics1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [
+					{
+						"name": "userId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "movieId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "rating",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "rating_time",
+						"type": "time",
+						"scale": 7
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "rating"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSynapseAnalyticsTable2')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSynapseAnalytics1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [
+					{
+						"name": "movieId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "title",
+						"type": "varchar"
+					},
+					{
+						"name": "average_rating",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "number_of_ratings",
+						"type": "float",
+						"precision": 15
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "movie_avg_ratings"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/movieDT')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSynapseAnalytics1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [
+					{
+						"name": "movieId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "title",
+						"type": "varchar"
+					},
+					{
+						"name": "genres",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "movie"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/movieRatings')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Movies with high average ratings",
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "movieDT",
+								"type": "DatasetReference"
+							},
+							"name": "movieDT"
+						},
+						{
+							"dataset": {
+								"referenceName": "AzureSynapseAnalyticsTable1",
+								"type": "DatasetReference"
+							},
+							"name": "ratingDT"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "AzureSynapseAnalyticsTable2",
+								"type": "DatasetReference"
+							},
+							"name": "writesummarydata"
+						}
+					],
+					"transformations": [
+						{
+							"name": "JoinMovieRating"
+						},
+						{
+							"name": "AggregateMovieRatings"
+						},
+						{
+							"name": "filter"
+						}
+					],
+					"script": "source(output(\n\t\tmovieId as integer,\n\t\ttitle as string,\n\t\tgenres as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table',\n\tstaged: true) ~> movieDT\nsource(output(\n\t\tuserId as integer,\n\t\tmovieId as integer,\n\t\trating as double,\n\t\trating_time as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table',\n\tstaged: true) ~> ratingDT\nmovieDT, ratingDT join(movieDT@movieId == ratingDT@movieId,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> JoinMovieRating\nJoinMovieRating aggregate(groupBy(title,\n\t\tmovieDT@movieId),\n\taverage_rating = avg(rating),\n\t\tnumber_of_ratings = count(rating)) ~> AggregateMovieRatings\nAggregateMovieRatings filter(number_of_ratings >= 1000) ~> filter\nfilter sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tmovieId as integer,\n\t\ttitle as string,\n\t\taverage_rating as double,\n\t\tnumber_of_ratings as double\n\t),\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tallowCopyCommand: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError',\n\tmapColumn(\n\t\tmovieId,\n\t\ttitle,\n\t\taverage_rating,\n\t\tnumber_of_ratings\n\t)) ~> writesummarydata"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/movieDT')]",
+				"[concat(variables('factoryId'), '/datasets/AzureSynapseAnalyticsTable1')]",
+				"[concat(variables('factoryId'), '/datasets/AzureSynapseAnalyticsTable2')]"
+			]
+		}
+	]
+}
