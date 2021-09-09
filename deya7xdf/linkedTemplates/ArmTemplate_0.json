@@ -911,7 +911,7 @@
 			"properties": {
 				"activities": [
 					{
-						"name": "Data flow1",
+						"name": "movieRating",
 						"type": "ExecuteDataFlow",
 						"dependsOn": [],
 						"policy": {
@@ -924,15 +924,22 @@
 						"userProperties": [],
 						"typeProperties": {
 							"dataflow": {
-								"referenceName": "dataflow1",
+								"referenceName": "movieRatings",
 								"type": "DataFlowReference",
 								"parameters": {},
 								"datasetParameters": {
-									"movieCSV": {},
-									"writeJson": {}
+									"movieDT": {},
+									"ratingDT": {},
+									"writesummarydata": {}
 								}
 							},
-							"staging": {},
+							"staging": {
+								"linkedService": {
+									"referenceName": "linkedService1",
+									"type": "LinkedServiceReference"
+								},
+								"folderPath": "data/synapse"
+							},
 							"compute": {
 								"coreCount": 8,
 								"computeType": "General"
@@ -944,7 +951,8 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/dataflow1')]"
+				"[concat(variables('factoryId'), '/dataflows/movieRatings')]",
+				"[concat(variables('factoryId'), '/linkedServices/linkedService1')]"
 			]
 		}
 	]
