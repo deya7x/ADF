@@ -1,0 +1,37 @@
+{
+	"name": "AzureSynapseAnalyticsTable1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSynapseAnalytics1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [
+			{
+				"name": "userId",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "movieId",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "rating",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "rating_time",
+				"type": "time",
+				"scale": 7
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "rating"
+		}
+	}
+}

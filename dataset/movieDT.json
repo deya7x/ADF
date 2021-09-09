@@ -1,0 +1,30 @@
+{
+	"name": "movieDT",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSynapseAnalytics1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [
+			{
+				"name": "movieId",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "title",
+				"type": "varchar"
+			},
+			{
+				"name": "genres",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "movie"
+		}
+	}
+}
