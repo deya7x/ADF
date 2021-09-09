@@ -1,0 +1,32 @@
+{
+	"name": "dataflow1",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DelimitedText1",
+						"type": "DatasetReference"
+					},
+					"name": "movieCSV"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "movie_json",
+						"type": "DatasetReference"
+					},
+					"name": "writeJson"
+				}
+			],
+			"transformations": [
+				{
+					"name": "createHierarchy"
+				}
+			],
+			"script": "source(output(\n\t\tmovieId as integer,\n\t\ttitle as string,\n\t\tgenres as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tskipLines: 1,\n\tpartitionBy('hash', 1)) ~> movieCSV\nmovieCSV derive(genres = split(genres,'|')) ~> createHierarchy\ncreateHierarchy sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tumask: 0022,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tmovieId,\n\t\ttitle,\n\t\tgenres\n\t),\n\tpartitionBy('hash', 1)) ~> writeJson"
+		}
+	}
+}
