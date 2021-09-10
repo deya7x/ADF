@@ -1040,13 +1040,12 @@
 						"userProperties": [],
 						"typeProperties": {
 							"dataflow": {
-								"referenceName": "movieRatings",
+								"referenceName": "employeeFlow",
 								"type": "DataFlowReference",
 								"parameters": {},
 								"datasetParameters": {
-									"movieDT": {},
-									"ratingDT": {},
-									"writesummarydata": {}
+									"employeeSrc": {},
+									"newEmployee": {}
 								}
 							},
 							"staging": {
@@ -1067,7 +1066,7 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/movieRatings')]",
+				"[concat(variables('factoryId'), '/dataflows/employeeFlow')]",
 				"[concat(variables('factoryId'), '/linkedServices/linkedService1')]"
 			]
 		}
