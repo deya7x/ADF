@@ -17,7 +17,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "movieRatings",
+						"referenceName": "employeeFlow",
 						"type": "DataFlowReference"
 					},
 					"staging": {
