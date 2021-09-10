@@ -426,6 +426,7 @@
 				"activities": [
 					{
 						"name": "movieRating",
+						"description": "movie rating pipeline",
 						"type": "ExecuteDataFlow",
 						"dependsOn": [],
 						"policy": {
