@@ -1,0 +1,32 @@
+{
+	"name": "gzipfile",
+	"properties": {
+		"description": "csv file compressed with gzip",
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "rating.csv.gz",
+				"folderPath": "movie",
+				"fileSystem": "data"
+			},
+			"columnDelimiter": ",",
+			"compressionCodec": "gzip",
+			"compressionLevel": "Optimal",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "\u001f�\b\b\u0002�9a\u0000\u0003rating.csv\u0000|�[�-+�.",
+				"type": "String"
+			}
+		]
+	}
+}
